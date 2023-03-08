@@ -64,13 +64,29 @@
         exit 1
       '';
 
-      _flasher = simplescript ''
+      mkScript = {
+        mkExec,
+        name,
+        path,
+      }: pkgs.writeShellScriptBin name ''
         set -e
-        ${stflash} --reset write "$(${getoneof} "$1/*.bin")" \
-          ${mcu.firmwareStart}
+        if [ -n "$1" ]; then
+          exec ${mkExec "$1"}
+        else
+          exec ${mkExec path}
+        fi
       '';
 
-      _rungdb =
+      mkFlasher = args :
+        mkScript ({
+          name = "flasher";
+          mkExec = path: ''
+            ${stflash} --reset write "$(${getoneof} "${path}/*.bin")" \
+              ${mcu.firmwareStart}
+          '';
+        } // args);
+
+      mkDebug = args:
         let
           runner = simplescript ''
             set -e
@@ -90,10 +106,14 @@
             ${pkgs.gdb}/bin/gdb "$elf" -ex \
               'target extended-remote localhost:'"$port"
           '';
-        in simplescript ''
-          set -e
-          exec ${runner} "$(${getoneof} "$1/*.elf")"
-        '';
+        in
+        mkScript ({
+          name = "debug";
+          mkExec = path: ''
+            ${runner} "$(${getoneof} "${path}/*.elf")"
+          '';
+        } // args);
+
     in
     rec {
       firmware = stdenv.mkDerivation ({
@@ -114,21 +134,11 @@
         "mcu"
       ]);
 
-      flasher = pkgs.writeShellScriptBin "flasher" ''
-        if [ -z "$1" ]; then
-          exec ${_flasher} ${firmware}/firmware
-        else
-          exec ${_flasher} "$@"
-        fi
-      '';
+      flasher = mkFlasher { path = buildDir; };
+      debugger = mkDebug { path = buildDir; };
 
-      debugger = pkgs.writeShellScriptBin "debug" ''
-        if [ -z "$1" ]; then
-          exec ${_rungdb} ${firmware}/firmware
-        else
-          exec ${_rungdb} "$@"
-        fi
-      '';
+      productFlasher = mkFlasher { path = "${firmware}/firmware";  };
+      productDebugger = mkDebug { path = "${firmware}/firmware";  };
 
       scripts = pkgs.symlinkJoin {
         name = "${name}-scripts";
@@ -138,11 +148,19 @@
         ];
       };
 
+      productScripts = pkgs.symlinkJoin {
+        name = "${name}-productScripts";
+        paths = [
+          productFlasher
+          productDebugger
+        ];
+      };
+
       all = pkgs.symlinkJoin {
         name = "${name}-all";
         paths = [
           firmware
-          scripts
+          productScripts
         ];
       };
     };

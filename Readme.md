@@ -45,17 +45,30 @@ There next descriptors described withing `mcus` output:
 The function `mkFirmwre` produces the set of derivations:
 
 * `firmware` - the target derivation with `firmware` folder to which placed all
- `*.elf` and `*.bin` files produced inside `buildDir`;
+  `*.elf` and `*.bin` files produced inside `buildDir`;
 
-* `flasher` - the script which runs `st-flash` to flash produced by `firmware`
-`*.bin` firmware file to device;
+* `flasher` - the script which runs `st-flash` to flash `*.bin` firmware file
+  found withing `buildDir` directory. You can call the script with another path
+  where to search for firmware file;
 
-* `debugger` - the scripts which runs `st-util` with gdb server in background and
-attaches the gdb shell to it with `*.elf` file produced by firmware;
+* `productFlasher` - the same as `flasher` but used produced by `firmware`
+  derivation `*.bin` file by default;
+
+* `debugger` - the scripts which runs `st-util` with gdb server in background
+  and attaches the gdb shell to it with `*.elf` found withing `buildDir`
+  directory. You can call the script with another path where to search for
+  firmware file;
+
+* `productDebugger` - the same as `debugger` but used produced by `firmware`
+  derivation `*.elf` file by default;
 
 * `scripts` - a join of `flasher` and `debugger` derivations;
 
-* `all` - a join of `flasher`, `debugger` and `firmware` derivations.
+* `productScripts` - a join of `productFlasher` and `productDebugger`
+  derivations;
+
+* `all` - a join of `productFlasher`, `productDebugger` and `firmware`
+  derivations.
 
 The function `mkFirmware` accepts the set of arguments same to `mkDerivation`
 function and additionally next:
@@ -84,10 +97,10 @@ $ ./result/bin/flasher  #To upload the firmware to board
 ### Developing
 
 ```bash
-$ nix build .#scripts           #To prepare scripts in current folder
-$ nix develop .#firmware        #To run development shell
-$ make                          #To build the intermidiate firmware
-$ ./result/bin/flasher ./build  #To flash the firmware from current build
-                                #dirictory
-$ ./result/bin/debugger ./build #To connect to board with gdb
+$ nix build .#scripts       #To prepare scripts in current folder
+$ nix develop .#firmware    #To run development shell
+$ make -j8                  #To build the intermidiate firmware
+$ ./result/bin/flasher      #To flash the firmware from current build
+                            #dirictory
+$ ./result/bin/debugger     #To connect to board with gdb
 ```
