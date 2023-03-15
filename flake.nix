@@ -114,6 +114,23 @@
           '';
         } // args);
 
+      format = mkScript ({
+          name = "format";
+          path = ".";
+          mkExec = path: simplescript ''
+            format_file="${path}/.clang-format"
+            if [ ! -f "$format_file" ]; then
+              format_file="${path}/_clang-format"
+            fi
+            if [ ! -f "$format_file" ]; then
+              format_file="${builtins.toString ./clang-format.yaml}"
+            fi
+            find "${path}" -type f -name "*.[h|c|cpp|hpp]" -print  | \
+              xargs ${pkgs.clang-tools}/bin/clang-format \
+                -style=file:"$format_file" -i
+          '';
+        });
+
     in
     rec {
       firmware = stdenv.mkDerivation ({
@@ -136,6 +153,7 @@
 
       flasher = mkFlasher { path = buildDir; };
       debugger = mkDebug { path = buildDir; };
+      inherit format;
 
       productFlasher = mkFlasher { path = "${firmware}/firmware";  };
       productDebugger = mkDebug { path = "${firmware}/firmware";  };
@@ -145,6 +163,7 @@
         paths = [
           flasher
           debugger
+          format
         ];
       };
 

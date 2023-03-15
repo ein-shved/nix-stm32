@@ -62,7 +62,13 @@ The function `mkFirmwre` produces the set of derivations:
 * `productDebugger` - the same as `debugger` but used produced by `firmware`
   derivation `*.elf` file by default;
 
-* `scripts` - a join of `flasher` and `debugger` derivations;
+* `format` - the script with applies `clang-format` for all source files in
+  current (or passed with argument) dirrectory. If the directory contains
+  `.clang-format` or `_clang-format` - it will be used, in other case the one
+  close to `stm32CubeMX` will be used (see
+  [clang-format.yaml](clang-format.yaml)).
+
+* `scripts` - a join of `flasher`, `debugger` and `format` derivations;
 
 * `productScripts` - a join of `productFlasher` and `productDebugger`
   derivations;
