@@ -14,8 +14,11 @@
 
     stm32CubeF4.url = github:STMicroelectronics/STM32CubeF4/v1.27.1;
     stm32CubeF4.flake = false;
+
+    cube2rustSrc.url = github:dimpolo/cube2rust;
+    cube2rustSrc.flake = false;
   };
-  outputs = { self, nixpkgs, ... }@inputs :
+  outputs = { self, nixpkgs, cube2rustSrc, ... }@inputs :
   let
     _pkgs = nixpkgs.legacyPackages.x86_64-linux;
     mkMcu = input: { cubeLib = input; };
@@ -52,6 +55,7 @@
       stdenv = pkgs.stdenv;
       stflash = "${pkgs.stlink}/bin/st-flash";
       stutil = "${pkgs.stlink}/bin/st-util";
+      cube2rust = pkgs.callPackage ./cube2rust { src = cube2rustSrc; };
 
       simplescript = body: let
         name = "__binscript";
@@ -221,7 +225,7 @@
 
       flasher = mkFlasher { path = buildDir; };
       debugger = mkDebug { path = buildDir; };
-      inherit format fixMakefile fixGen;
+      inherit format fixMakefile fixGen cube2rust;
 
       productFlasher = mkFlasher { path = "${firmware}/firmware";  };
       productDebugger = mkDebug { path = "${firmware}/firmware";  };
@@ -234,6 +238,7 @@
           format
           fixMakefile
           fixGen
+          cube2rust
         ];
       };
 
