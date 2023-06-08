@@ -42,7 +42,7 @@ There next descriptors described withing `mcus` output:
 
 ### mkFirmware
 
-The function `mkFirmwre` produces the set of derivations:
+The function `mkFirmwre` produces the set of package for each default system:
 
 * `firmware` - the target derivation with `firmware` folder to which placed all
   `*.elf` and `*.bin` files produced inside `buildDir`;
@@ -88,8 +88,6 @@ function and additionally next:
 
 * `mcu` - the describer for [MCU](#MCU)
 
-* `pkgs` - the legacy nixpkgs set (defined by default)
-
 * `stm32CubeLibVarName` - the name of environment variable of HAL library to
   define for builder (`STM32CUBE_PATH` by default)
 
@@ -103,22 +101,21 @@ flake in several ways:
 ### Final product
 
 ```bash
-$ nix build .#all       #To build firmware and create the all-derivation
-$ ./result/bin/flasher  #To upload the firmware to board
+$ nix build           #To build firmware
+$ nix run             #To upload the firmware to board
 ```
 
 ### Developing
 
 ```bash
-$ nix shell .#scripts       # To run shell with utilities
-$ nix develop .#firmware    # To run development shell
-$ stm32cubemx               # Run Stm32CubeMx, configure project and generate
-                            # code with it. Almost all your files will change.
-$ fixGen                    # Bring the style of your files back to normal.
-                            # There only significant changes will be visible
-                            # withing git status
-$ make -j8                  # To build the intermidiate firmware
-$ flasher                   # To flash the firmware from current build
-                            # dirictory
-$ debug                     # To connect to board with gdb
+$ nix develop         # To run development shell
+$ stm32cubemx         # Run Stm32CubeMx, configure project and generate
+                      # code with it. Almost all your files will change.
+$ fixGen              # Bring the style of your files back to normal.
+                      # There only significant changes will be visible
+                      # withing git status
+$ make -j8            # To build the intermidiate firmware
+$ flasher             # To flash the firmware from current build
+                      # dirictory
+$ debug               # To connect to board with gdb
 ```
