@@ -93,6 +93,23 @@ function and additionally next:
 
 * `buildDir` - the relative path to build directory (`build` by default)
 
+### mkRustFirmware
+
+The function `mkRustFirmwre` produces the flake-ideomatic tree for firmware,
+built with rust.
+
+It accepts the same set of attributes as buildRustPackage, and additional:
+
+* `mcu` - the describer for [MCU](#MCU)
+
+It requires from rust project to be ready to be built for embedded:
+
+* have a correct `build.rs` file
+
+* have a correct `.cargo/config.toml` file
+
+* have a correct `memory.x` file
+
 ## Usage
 
 Say, you used nix-stm32 shown [above](#Flake). Then you may use work with your
@@ -105,7 +122,7 @@ $ nix build           #To build firmware
 $ nix run             #To upload the firmware to board
 ```
 
-### Developing
+### Developing the C Project with CubeMX
 
 ```bash
 $ nix develop         # To run development shell
@@ -118,4 +135,12 @@ $ make -j8            # To build the intermidiate firmware
 $ flasher             # To flash the firmware from current build
                       # dirictory
 $ debug               # To connect to board with gdb
+```
+
+### Developing the Rust Project
+
+```bash
+$ nix develop         # To run development shell
+$ cargo build         # To build the firmware
+$ cargo run           # To flash the firmware from current build and debug it
 ```

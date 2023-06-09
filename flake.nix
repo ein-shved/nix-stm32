@@ -3,6 +3,7 @@
   inputs = {
     nixpkgs.url = "nixpkgs";
 
+    rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
 
     stm32CubeF1.url = github:STMicroelectronics/STM32CubeF1/v1.8.4;
@@ -30,9 +31,12 @@
     in
     {
       mcus = rec {
-        stm32f1 = mkMcuRegex 1 "1.8.4";
+        stm32f1 = mkMcuRegex 1 "1.8.4" // {
+          rustTarget = "thumbv7m-none-eabi";
+        };
         stm32f103 = stm32f1 // {
           firmwareStart = "0x8000000";
+          chip = "STM32F103C8";
         };
 
         stm32f2 = mkMcu inputs.stm32CubeF2;
@@ -41,6 +45,9 @@
       };
       mkFirmware = import ./cProject.nix {
         inherit nixpkgs flake-utils;
+      };
+      mkRustFirmware = import ./rustProject.nix {
+        inherit nixpkgs flake-utils rust-overlay;
       };
     };
 }
