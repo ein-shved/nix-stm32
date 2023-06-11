@@ -110,6 +110,17 @@ It requires from rust project to be ready to be built for embedded:
 
 * have a correct `memory.x` file
 
+### mergeFirmwares
+
+The function `mergeFirmwares` allows to merge several flake trees (produced by
+`mkFirmware` or `mkRustFirmware`) to the single tree.
+
+It accepts an attrset the value of each attribute expected to be the flake-tree.
+The function takes the `default` packages apps and devShells from each and
+places them to result with the name of corresponding tree.
+
+If you provides the tree with name `default` its parts became the default.
+
 ## Usage
 
 Say, you used nix-stm32 shown [above](#Flake). Then you may use work with your

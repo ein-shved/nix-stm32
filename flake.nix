@@ -49,5 +49,35 @@
       mkRustFirmware = import ./rustProject.nix {
         inherit nixpkgs flake-utils rust-overlay;
       };
+      mergeFirmwares = firmwares:
+        flake-utils.lib.eachDefaultSystem (system: with nixpkgs.lib;
+        let
+          list = attrsets.mapAttrsToList (n: v: { name = n; val = v; })
+            firmwares;
+
+          defaultField = field: pkgs:
+            if pkgs ? ${field}
+            then pkgs.${field}
+            else { };
+
+          mergeFields = field: pkgs: pkg:
+            {
+              ${field} = (defaultField field pkgs) // (
+                if pkg ? val.${field}.${system}.default
+                then {
+                  ${pkg.name} = pkg.val.${field}.${system}.default;
+                }
+                else { }
+              );
+            };
+        in
+        lists.foldl
+          (pkgs: pkg: (
+            (mergeFields "packages" pkgs pkg) //
+            (mergeFields "devShells" pkgs pkg) //
+            (mergeFields "apps" pkgs pkg)
+          ))
+          { }
+          list);
     };
 }
