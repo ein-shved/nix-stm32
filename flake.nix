@@ -6,6 +6,8 @@
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils.url = "github:numtide/flake-utils";
 
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
+
     stm32CubeF1.url = github:STMicroelectronics/STM32CubeF1/v1.8.4;
     stm32CubeF1.flake = false;
 
