@@ -1,5 +1,9 @@
 { nixpkgs, flake-utils, rust-overlay }:
-{ mcu, ... }@args:
+{ mcu
+, nightly ? false
+, buildPackage ? true
+, ...
+}@args:
 flake-utils.lib.eachDefaultSystem (system:
   let
     target = if mcu ? rustTarget then mcu.rustTarget else
@@ -10,9 +14,19 @@ flake-utils.lib.eachDefaultSystem (system:
     pkgs = import nixpkgs {
       inherit system overlays;
     };
-    rustVersion = pkgs.rust-bin.stable.latest.default.override {
-      targets = [ target ];
-    };
+    rustVersion =
+      if nightly
+      then
+        pkgs.rust-bin.selectLatestNightlyWith
+          (
+            toolchain: toolchain.default.override {
+              targets = [ target ];
+            }
+          )
+      else
+        pkgs.rust-bin.stable.latest.default.override {
+          targets = [ target ];
+        };
 
     package = pkgs.rustPlatform.buildRustPackage
       ({
@@ -36,11 +50,23 @@ flake-utils.lib.eachDefaultSystem (system:
   in
   {
     devShells.default = pkgs.mkShellNoCC {
-      buildInputs = [ rustVersion pkgs.probe-run ];
+      buildInputs = [ rustVersion
+                      pkgs.probe-run
+                      pkgs.probe-rs-cli
+                    ];
     };
-    packages.default = package;
   } // (
-    if mcu ? chip then {
-      apps.default = flake-utils.lib.mkApp { drv = runner; };
-    } else { }
+    if buildPackage
+    then
+      {
+        packages.default = package;
+      } // (
+        if mcu ? chip
+        then
+          {
+            apps.default = flake-utils.lib.mkApp { drv = runner; };
+          }
+        else { }
+      )
+    else { }
   ))
